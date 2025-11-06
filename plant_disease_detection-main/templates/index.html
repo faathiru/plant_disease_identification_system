@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swipe Animation with Sign In and Sign Up</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(-45deg, #4EA685, #57B894);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-container {
+      width: 400px;
+      overflow: hidden;
+      position: relative;
+      height: 550px;
+    }
+
+    .sliding-container {
+      display: flex;
+      transition: transform 0.6s ease-in-out;
+      width: 200%;
+      height: 100%;
+    }
+
+    .card-side {
+      width: 50%;
+      height: 100%;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background-color: #4EA685;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #57B894;
+    }
+
+    .toggle-link {
+      color: #4EA685;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .toggle-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <div id="sliding-container" class="sliding-container">
+      <!-- Sign In Form -->
+      <div class="card-side">
+        <h4 class="text-center mb-4">Sign In</h4>
+        <form id="signin-form">
+          <div class="mb-3">
+            <label for="signin-username" class="form-label">Username</label>
+            <input type="text" id="signin-username" class="form-control" placeholder="Enter username">
+          </div>
+          <div class="mb-3">
+            <label for="signin-password" class="form-label">Password</label>
+            <input type="password" id="signin-password" class="form-control" placeholder="Enter password">
+          </div>
+          <button type="button" class="btn btn-primary w-100" onclick="handleSignIn()">Sign In</button>
+          <p class="text-center mt-3">
+            Don't have an account? 
+            <span class="toggle-link" onclick="slideToSignUp()">Sign up here</span>
+          </p>
+        </form>
+      </div>
+      <!-- Sign Up Form -->
+      <div class="card-side">
+        <h4 class="text-center mb-4">Sign Up</h4>
+        <form id="signup-form">
+          <div class="mb-3">
+            <label for="signup-username" class="form-label">Username</label>
+            <input type="text" id="signup-username" class="form-control" placeholder="Enter username">
+          </div>
+          <div class="mb-3">
+            <label for="signup-email" class="form-label">Email</label>
+            <input type="email" id="signup-email" class="form-control" placeholder="Enter email">
+          </div>
+          <div class="mb-3">
+            <label for="signup-password" class="form-label">Password</label>
+            <input type="password" id="signup-password" class="form-control" placeholder="Enter password">
+          </div>
+          <div class="mb-3">
+            <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+            <input type="password" id="signup-confirm-password" class="form-control" placeholder="Confirm password">
+          </div>
+          <button type="button" class="btn btn-primary w-100" onclick="handleSignUp()">Sign Up</button>
+          <p class="text-center mt-3">
+            Already have an account? 
+            <span class="toggle-link" onclick="slideToSignIn()">Sign in here</span>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Feedback -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="feedbackModalLabel">Message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="feedbackMessage">
+          <!-- Feedback message will be inserted here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const slidingContainer = document.getElementById('sliding-container');
+
+    function slideToSignUp() {
+        slidingContainer.style.transform = 'translateX(-50%)';
+    }
+
+    function slideToSignIn() {
+        slidingContainer.style.transform = 'translateX(0)';
+    }
+
+    function showFeedbackMessage(message) {
+        alert(message); // Simple feedback for now, but this can be replaced with a modal
+    }
+
+    async function handleSignIn() {
+        const username = document.getElementById('signin-username').value;
+        const password = document.getElementById('signin-password').value;
+
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Redirect to classifier page on successful login
+            window.location.href = data.redirect;
+        } else {
+            // Show error message
+            showFeedbackMessage(data.message || "Login failed!");
+        }
+    }
+
+    async function handleSignUp() {
+        const username = document.getElementById('signup-username').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+        if (password !== confirmPassword) {
+            showFeedbackMessage("Passwords do not match!");  
+            return;
+        }
+
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showFeedbackMessage(data.message || "User registered successfully!");
+            slideToSignIn(); // Redirect to sign-in form after registration
+        } else {
+            showFeedbackMessage(data.error || "Registration failed!");
+        }
+    }
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
